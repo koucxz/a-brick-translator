@@ -1,9 +1,11 @@
 import json
+import os
+from pathlib import Path
+
 from typing import Literal, Optional
 from openai import OpenAI
 import anthropic
-import google.generativeai as genai
-from pathlib import Path
+from google import genai
 
 class BrickTranslator:
     """
@@ -74,8 +76,8 @@ class BrickTranslator:
             if not api_key or api_key == "your_google_api_key_here":
                 raise ValueError("请在 config.json 中配置 gemini.api_key")
 
-            genai.configure(api_key=api_key)
-            return genai
+            client = genai.Client(api_key=api_key)
+            return client
 
         elif self.provider == "openai":
             openai_config = self.config.get("openai", {})
@@ -92,6 +94,30 @@ class BrickTranslator:
 
         else:
             raise ValueError(f"不支持的provider: {self.provider}")
+
+    def _extract_claude_response(self, response):
+        """提取Claude API响应"""
+        if response.content and len(response.content) > 0:
+            return response.content[0].text
+        else:
+            raise ValueError("Claude API 返回空响应")
+
+    def _extract_gemini_response(self, response):
+        """提取Gemini API响应"""
+        if response.text:
+            return response.text
+        else:
+            raise ValueError("Gemini API 返回空响应")
+
+    def _extract_openai_response(self, response, provider_name="OpenAI"):
+        """提取OpenAI兼容API响应（Qwen/OpenAI）"""
+        if (response.choices and
+            len(response.choices) > 0 and
+            response.choices[0].message and
+            response.choices[0].message.content):
+            return response.choices[0].message.content
+        else:
+            raise ValueError(f"{provider_name} API 返回空响应")
 
     def translate(
         self,
@@ -126,19 +152,18 @@ class BrickTranslator:
                     {"role": "user", "content": prompt}
                 ]
             )
-            return response.content[0].text
+            return self._extract_claude_response(response)
 
         elif self.provider == "gemini":
-            # Gemini 使用默认模型
-            model = self.client.GenerativeModel('gemini-pro')
-            response = model.generate_content(
-                prompt,
+            response = self.client.models.generate_content(
+                model='gemini-pro',
+                contents=prompt,
                 generation_config={
                     "temperature": temperature,
                     "max_output_tokens": 2048
                 }
             )
-            return response.text
+            return self._extract_gemini_response(response)
 
         elif self.provider == "qwen":
             # Qwen 使用配置文件中指定的模型
@@ -151,7 +176,7 @@ class BrickTranslator:
                 ],
                 temperature=temperature
             )
-            return response.choices[0].message.content
+            return self._extract_openai_response(response, "Qwen")
 
         else:  # openai
             # OpenAI 不指定模型，使用API的默认模型
@@ -161,7 +186,7 @@ class BrickTranslator:
                 ],
                 temperature=temperature
             )
-            return response.choices[0].message.content
+            return self._extract_openai_response(response, "OpenAI")
 
     def translate_with_context(
         self,
@@ -201,18 +226,18 @@ class BrickTranslator:
                     {"role": "user", "content": prompt}
                 ]
             )
-            return response.content[0].text
+            return self._extract_claude_response(response)
 
         elif self.provider == "gemini":
-            model = self.client.GenerativeModel('gemini-pro')
-            response = model.generate_content(
-                prompt,
+            response = self.client.models.generate_content(
+                model='gemini-pro',
+                contents=prompt,
                 generation_config={
                     "temperature": 0.3,
                     "max_output_tokens": 2048
                 }
             )
-            return response.text
+            return self._extract_gemini_response(response)
 
         elif self.provider == "qwen":
             # Qwen 使用配置文件中指定的模型
@@ -225,7 +250,7 @@ class BrickTranslator:
                 ],
                 temperature=0.3
             )
-            return response.choices[0].message.content
+            return self._extract_openai_response(response, "Qwen")
 
         else:  # openai
             response = self.client.chat.completions.create(
@@ -234,4 +259,4 @@ class BrickTranslator:
                 ],
                 temperature=0.3
             )
-            return response.choices[0].message.content
+            return self._extract_openai_response(response, "OpenAI")

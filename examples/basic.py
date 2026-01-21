@@ -63,15 +63,25 @@ def temperature_example():
     """调整Temperature参数示例"""
     print("\n=== Temperature参数示例 ===")
 
+    text_to_translate = "This is absolutely amazing!"
+
     translator = BrickTranslator()
 
-    # Temperature越低，翻译越稳定；Temperature越高，翻译越有创造性
-    result = translator.translate(
-        "Hello world",
+    result_low = translator.translate(
+        text_to_translate,
         target_lang="zh",
-        temperature=0.1  # 默认为 0.3
+        temperature=0.1
     )
-    print(f"低Temperature翻译: {result}")
+    print(f"低Temperature (0.1): {result_low}")
+
+    result_high = translator.translate(
+        text_to_translate,
+        target_lang="zh",
+        temperature=0.9
+    )
+    print(f"高Temperature (0.9): {result_high}")
+
+    print("\n说明: Temperature值越低，翻译结果越稳定一致；值越高，翻译结果越有创造性但可能不够准确。")
 
 if __name__ == "__main__":
     basic_translation_example()

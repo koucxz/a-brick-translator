@@ -30,6 +30,12 @@ python -m brick_translator translate "你好世界" --target en
 
 # 带上下文翻译
 python -m brick_translator translate-with-context "bug" --context "software development" --target zh
+
+# 生成国际化文件（JSON格式）
+python -m brick_translator generate-i18n source.json --languages zh en --output-dir i18n
+
+# 生成国际化文件（YAML格式，启用缓存）
+python -m brick_translator generate-i18n source.json --format yaml --cache --languages zh en
 ```
 
 #### Python API
@@ -166,6 +172,108 @@ result = translator.translate_with_context(
 result = translator.translate("Hello world", target_lang="zh", temperature=0.1)
 ```
 
+### i18n_example.py - 国际化示例
+项目还包含专门的国际化功能示例：
+
+```bash
+# 运行i18n示例
+python examples/i18n_example.py
+```
+
+该示例演示了：
+- 生成中文 (zh) 和西班牙语 (es) 版本
+- JSON 和 YAML 格式输出
+- 翻译缓存机制
+- 结构保留功能
+
+## 国际化 (i18n) 文件生成
+
+AI Brick Translator 现在支持从源 JSON 文件生成多语言国际化文件，保留原始结构并只翻译值部分。
+
+### 功能特性
+- **保留原始结构**: 保持 JSON 的嵌套结构和键名不变，只翻译字符串值
+- **多格式支持**: 支持输出 JSON 和 YAML 格式
+- **翻译缓存**: 避免重复翻译相同内容，提高效率并减少 API 调用
+- **多语言支持**: 默认支持中文 (zh) 和西班牙语 (es)，可扩展其他语言
+
+### 命令行使用
+```bash
+# 基本用法 - 生成中文和西班牙语版本（默认）
+python -m brick_translator generate-i18n source.json
+
+# 指定输出目录和格式
+python -m brick_translator generate-i18n source.json --output-dir locales --format yaml
+
+# 生成特定语言版本
+python -m brick_translator generate-i18n source.json --languages zh es
+
+# 启用翻译缓存（推荐用于大型文件）
+python -m brick_translator generate-i18n source.json --cache --languages zh es
+```
+
+### Python API 使用
+```python
+from brick_translator.translator import BrickTranslator
+from brick_translator.i18n_generator import I18nGenerator
+
+translator = BrickTranslator()
+i18n_generator = I18nGenerator(translator)
+
+# 生成多语言文件（默认: 中文和西班牙语）
+success = i18n_generator.generate_i18n(
+    input_file="source.json",
+    output_dir="i18n",
+    output_format="json",
+    use_cache=True
+)
+
+# 生成特定语言版本
+success = i18n_generator.generate_i18n(
+    input_file="source.json",
+    output_dir="i18n",
+    languages=["zh", "es"],
+    output_format="json",
+    use_cache=True
+)
+```
+
+### 输出示例
+**输入文件 (source.json):**
+```json
+{
+  "title": "Hello World",
+  "description": "This is a test application",
+  "buttons": {
+    "save": "Save",
+    "cancel": "Cancel"
+  }
+}
+```
+
+**输出文件 (source_zh.json) - 中文:**
+```json
+{
+  "title": "你好世界",
+  "description": "这是一个测试应用程序",
+  "buttons": {
+    "save": "保存",
+    "cancel": "取消"
+  }
+}
+```
+
+**输出文件 (source_es.json) - 西班牙语:**
+```json
+{
+  "title": "Hola Mundo",
+  "description": "Esta es una aplicación de prueba",
+  "buttons": {
+    "save": "Guardar",
+    "cancel": "Cancelar"
+  }
+}
+```
+
 ## 单元测试
 
 项目包含完整的单元测试，覆盖所有核心功能：
@@ -185,10 +293,14 @@ python tests/api_check.py
 - **带上下文翻译**: 验证上下文信息对翻译结果的影响
 - **Temperature参数**: 测试不同temperature值的功能
 
+### i18n 专用测试
+- **i18n功能**: 提取可翻译值、重建结构、JSON/YAML格式输出、翻译缓存机制、中文/西班牙语支持
+- **测试文件**: `tests/test_i18n_generator.py`
+
 ### 测试特点
-- **安全测试**: `test_translator.py` 使用Mock技术，不会产生实际API调用费用
+- **安全测试**: `test_translator.py` 和 `test_i18n_generator.py` 使用Mock技术，不会产生实际API调用费用
 - **独立运行**: 无需配置API密钥即可运行功能性测试
-- **完整覆盖**: 参考 `examples/basic.py` 中的所有功能点
+- **完整覆盖**: 参考 `examples/basic.py` 和 `examples/i18n_example.py` 中的所有功能点
 
 ## 开源协议
 

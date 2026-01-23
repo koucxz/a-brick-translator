@@ -81,6 +81,19 @@ def main():
     # test 命令
     test_parser = subparsers.add_parser('test', help='测试所有API连接')
 
+    # generate-i18n 命令
+    generate_i18n_parser = subparsers.add_parser('generate-i18n', help='生成国际化JSON文件')
+    generate_i18n_parser.add_argument('input_file', help='源JSON文件路径')
+    generate_i18n_parser.add_argument('--output-dir', default='i18n', help='输出目录 (默认: i18n)')
+    generate_i18n_parser.add_argument('--languages', nargs='+', default=['zh', 'es'],
+                                    choices=['zh', 'en', 'es'], help='目标语言列表 (默认: zh es)')
+    generate_i18n_parser.add_argument('--provider', choices=['qwen', 'claude', 'gemini', 'openai'],
+                                    help='API提供商（如果不指定，则使用配置文件中的默认提供商）')
+    generate_i18n_parser.add_argument('--config', default='config.json', help='配置文件路径')
+    generate_i18n_parser.add_argument('--format', choices=['json', 'yaml'], default='json',
+                                    help='输出文件格式 (默认: json)')
+    generate_i18n_parser.add_argument('--cache', action='store_true', help='启用翻译缓存')
+
     args = parser.parse_args()
 
     if not args.command:
@@ -126,6 +139,25 @@ def main():
         elif args.command == 'test':
             # 测试命令需要从tests目录运行
             print("请运行 'python -m pytest tests/' 或 'python tests/api_check.py' 来测试API连接")
+
+        elif args.command == 'generate-i18n':
+            from .translator import BrickTranslator
+            from .i18n_generator import I18nGenerator
+            # 如果未指定provider，则使用None，让BrickTranslator使用配置文件中的默认提供商
+            provider = args.provider if args.provider is not None else None
+            translator = BrickTranslator(provider=provider, config_path=args.config)
+            i18n_generator = I18nGenerator(translator)
+            result = i18n_generator.generate_i18n(
+                input_file=args.input_file,
+                output_dir=args.output_dir,
+                languages=args.languages,
+                output_format=args.format,
+                use_cache=args.cache
+            )
+            if result:
+                print(f"[OK] 国际化文件生成完成，输出目录: {args.output_dir}")
+            else:
+                print("[ERROR] 国际化文件生成失败")
 
     except Exception as e:
         print(f"[ERROR] 错误: {e}", file=sys.stderr)

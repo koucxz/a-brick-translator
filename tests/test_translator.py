@@ -41,6 +41,15 @@ def create_mock_config(provider="qwen"):
     return mock_config
 
 
+def create_mock_response(content):
+    """创建模拟API响应"""
+    mock_response = MagicMock()
+    mock_response.choices = [MagicMock()]
+    mock_response.choices[0].message = MagicMock()
+    mock_response.choices[0].message.content = content
+    return mock_response
+
+
 def test_basic_translation_english_to_chinese():
     """测试基础翻译功能 - 英译中"""
     mock_config = create_mock_config("qwen")
@@ -54,9 +63,7 @@ def test_basic_translation_english_to_chinese():
 
         # Mock API调用
         with patch.object(translator.client, 'chat') as mock_chat:
-            mock_response = MagicMock()
-            mock_response.choices[0].message.content = "你好，你怎么样？"
-            mock_chat.completions.create.return_value = mock_response
+            mock_chat.completions.create.return_value = create_mock_response("你好，你怎么样？")
 
             result = translator.translate("Hello, how are you?", target_lang="zh")
 
@@ -82,9 +89,7 @@ def test_basic_translation_chinese_to_english():
 
         # Mock API调用
         with patch.object(translator.client, 'chat') as mock_chat:
-            mock_response = MagicMock()
-            mock_response.choices[0].message.content = "The weather is really nice today"
-            mock_chat.completions.create.return_value = mock_response
+            mock_chat.completions.create.return_value = create_mock_response("The weather is really nice today")
 
             result = translator.translate("今天天气真好", target_lang="en")
 
@@ -118,7 +123,6 @@ def test_different_providers_initialization():
             print(f"[WARN] {provider.upper()} 初始化失败: {e}")
         finally:
             os.unlink(temp_config_path)
-
     assert success_count > 0, "至少应该有一个提供商初始化成功"
     print(f"[INFO] API提供商初始化测试: {success_count}/{len(providers)} 通过")
 
@@ -136,9 +140,7 @@ def test_context_translation_functionality():
 
         # Mock API调用
         with patch.object(translator.client, 'chat') as mock_chat:
-            mock_response = MagicMock()
-            mock_response.choices[0].message.content = "他进了一个球"
-            mock_chat.completions.create.return_value = mock_response
+            mock_chat.completions.create.return_value = create_mock_response("他进了一个球")
 
             result = translator.translate_with_context(
                 text="He scored a goal",
@@ -170,9 +172,7 @@ def test_temperature_parameter_functionality():
         temperatures = [0.1, 0.9]
         for temp in temperatures:
             with patch.object(translator.client, 'chat') as mock_chat:
-                mock_response = MagicMock()
-                mock_response.choices[0].message.content = f"温度{temp}的翻译结果"
-                mock_chat.completions.create.return_value = mock_response
+                mock_chat.completions.create.return_value = create_mock_response(f"温度{temp}的翻译结果")
 
                 result = translator.translate(
                     "Test text for temperature",

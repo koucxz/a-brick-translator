@@ -1,5 +1,8 @@
-# 配置文件
+# Configuration files
 config.json
+.env
+.env.local
+.env.*.local
 
 # Python
 __pycache__/
@@ -22,6 +25,21 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.pyre/
+.hypothesis/
+
+# Virtual Environment
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+.venv/
+.env/
 
 # IDE
 .vscode/
@@ -29,7 +47,61 @@ wheels/
 *.swp
 *.swo
 *~
+.project
+.pydevproject
+.settings/
 
 # OS
 .DS_Store
 Thumbs.db
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# Coverage reports
+coverage.xml
+*.cover
+*.lcov
+
+# Build artifacts
+*.tar.gz
+*.whl
+*.zip
+
+# Project-specific generated files
+i18n_output/
+examples/.i18n_cache/
+.i18n_cache/
+.cache/
+*.cache
+
+# Documentation
+*.pdf
+*.docx
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Editors
+*.bak
+*.tmp
+~$*
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# Windows
+Desktop.ini
+Thumbs.db
+ehthumbs_vista.db

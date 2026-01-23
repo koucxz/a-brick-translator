@@ -1,0 +1,27 @@
+{
+  "app": {
+    "title": "AI Brick Translator",
+    "description": "A smart translation tool supporting multiple AI models",
+    "version": "1.0.0"
+  },
+  "navigation": {
+    "home": "Home",
+    "settings": "Settings",
+    "about": "About"
+  },
+  "buttons": {
+    "translate": "Translate",
+    "save": "Save",
+    "cancel": "Cancel",
+    "clear": "Clear"
+  },
+  "messages": {
+    "success": "Translation completed successfully!",
+    "error": "An error occurred during translation",
+    "loading": "Translating..."
+  },
+  "placeholders": {
+    "input": "Enter text to translate",
+    "output": "Translated text will appear here"
+  }
+}
